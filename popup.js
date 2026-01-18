@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const zoomValue = document.getElementById('zoomValue');
   const presetBtns = document.querySelectorAll('.preset-btn');
   const darkModeToggle = document.getElementById('darkModeToggle');
+  const siteSection = document.getElementById('siteSection');
+  const siteDomain = document.getElementById('siteDomain');
+  const saveSiteBtn = document.getElementById('saveSiteBtn');
+
+  let currentDomain = null;
 
   // Dark mode initialization
   function initDarkMode() {
@@ -36,17 +41,51 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initDarkMode();
 
-  // Load saved state
-  chrome.storage.local.get(['enabled', 'zoom'], (result) => {
-    const enabled = result.enabled || false;
-    const zoom = result.zoom || 1.33;
+  // Query current tab for domain and load settings
+  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+    if (tabs[0]?.id) {
+      chrome.tabs.sendMessage(tabs[0].id, { action: 'getSiteState' })
+        .then((response) => {
+          if (response?.domain) {
+            currentDomain = response.domain;
+            siteDomain.textContent = currentDomain;
+            siteSection.style.display = 'flex';
 
-    enableToggle.checked = enabled;
-    statusLabel.textContent = enabled ? 'Enabled' : 'Disabled';
-    zoomSlider.value = zoom;
-    zoomValue.textContent = zoom.toFixed(2) + 'x';
-    updatePresetButtons(zoom);
+            // Load site-specific or global settings
+            loadSettings();
+          }
+        })
+        .catch(() => {
+          // Content script not loaded, just load global settings
+          loadSettings();
+        });
+    } else {
+      loadSettings();
+    }
   });
+
+  // Load saved state
+  function loadSettings() {
+    chrome.storage.local.get(['enabled', 'zoom', 'siteSettings'], (result) => {
+      const siteSettings = result.siteSettings || {};
+      const siteConfig = currentDomain ? siteSettings[currentDomain] : null;
+
+      let enabled, zoom;
+      if (siteConfig) {
+        enabled = siteConfig.enabled !== undefined ? siteConfig.enabled : (result.enabled || false);
+        zoom = siteConfig.zoom || result.zoom || 1.33;
+      } else {
+        enabled = result.enabled || false;
+        zoom = result.zoom || 1.33;
+      }
+
+      enableToggle.checked = enabled;
+      statusLabel.textContent = enabled ? 'Enabled' : 'Disabled';
+      zoomSlider.value = zoom;
+      zoomValue.textContent = zoom.toFixed(2) + 'x';
+      updatePresetButtons(zoom);
+    });
+  }
 
   // Toggle handler
   enableToggle.addEventListener('change', () => {
@@ -105,4 +144,28 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
+
+  // Save site-specific settings
+  saveSiteBtn.addEventListener('click', () => {
+    if (!currentDomain) return;
+
+    const enabled = enableToggle.checked;
+    const zoom = parseFloat(zoomSlider.value);
+
+    chrome.storage.local.get(['siteSettings'], (result) => {
+      const siteSettings = result.siteSettings || {};
+      siteSettings[currentDomain] = { enabled, zoom };
+
+      chrome.storage.local.set({ siteSettings }, () => {
+        // Show saved feedback
+        saveSiteBtn.textContent = 'Saved!';
+        saveSiteBtn.classList.add('saved');
+
+        setTimeout(() => {
+          saveSiteBtn.textContent = 'Save for this site';
+          saveSiteBtn.classList.remove('saved');
+        }, 1500);
+      });
+    });
+  });
 });
