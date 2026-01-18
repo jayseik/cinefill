@@ -29,8 +29,8 @@ Your settings are saved automatically.
 
 - max.com
 - hbomax.com
-
-More streaming services coming soon.
+- netflix.com
+- disneyplus.com
 
 ## Permissions
 

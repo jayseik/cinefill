@@ -1,13 +1,23 @@
 {
   "manifest_version": 3,
   "name": "Cinefill",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Remove letterbox bars and fill your ultrawide screen on streaming services",
   "permissions": ["storage", "activeTab"],
-  "host_permissions": ["*://*.max.com/*", "*://*.hbomax.com/*"],
+  "host_permissions": [
+    "*://*.max.com/*",
+    "*://*.hbomax.com/*",
+    "*://*.netflix.com/*",
+    "*://*.disneyplus.com/*"
+  ],
   "content_scripts": [
     {
-      "matches": ["*://*.max.com/*", "*://*.hbomax.com/*"],
+      "matches": [
+        "*://*.max.com/*",
+        "*://*.hbomax.com/*",
+        "*://*.netflix.com/*",
+        "*://*.disneyplus.com/*"
+      ],
       "js": ["content.js"],
       "run_at": "document_start",
       "all_frames": true
