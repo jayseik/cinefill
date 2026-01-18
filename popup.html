@@ -34,7 +34,23 @@
       </div>
     </div>
 
-    <p class="hint">Works on max.com</p>
+    <div class="aspect-section" id="aspectSection" style="display: none;">
+      <div class="aspect-info">
+        <span class="aspect-label">Detected:</span>
+        <span class="aspect-ratio" id="aspectRatio"></span>
+      </div>
+      <button class="apply-aspect-btn" id="applyAspectBtn">Apply suggested zoom</button>
+    </div>
+
+    <div class="site-section" id="siteSection" style="display: none;">
+      <div class="site-info">
+        <span class="site-label">Current site:</span>
+        <span class="site-domain" id="siteDomain"></span>
+      </div>
+      <button class="save-site-btn" id="saveSiteBtn">Save for this site</button>
+    </div>
+
+    <p class="hint">Works on streaming sites</p>
   </div>
   <script src="popup.js"></script>
 </body>

@@ -1,9 +1,21 @@
 {
   "manifest_version": 3,
   "name": "Cinefill",
-  "version": "1.3.0",
+  "version": "1.7.0",
   "description": "Remove letterbox bars and fill your ultrawide screen on streaming services",
   "permissions": ["storage", "activeTab"],
+  "commands": {
+    "toggle-cinefill": {
+      "suggested_key": {
+        "default": "Alt+U",
+        "mac": "Alt+U"
+      },
+      "description": "Toggle Cinefill on/off"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
   "host_permissions": [
     "*://*.max.com/*",
     "*://*.hbomax.com/*",

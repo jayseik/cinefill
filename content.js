@@ -1,4 +1,4 @@
-// HBO Max Ultrawide Fixer - Content Script
+// Cinefill - Content Script
 (function() {
   'use strict';
 
@@ -9,10 +9,28 @@
   let observer = null;
   let styleElement = null;
 
-  // Load saved settings
-  chrome.storage.local.get(['enabled', 'zoom'], (result) => {
-    isEnabled = result.enabled || false;
-    zoomLevel = result.zoom || DEFAULT_ZOOM;
+  // Extract domain from current URL
+  function getCurrentDomain() {
+    return window.location.hostname.replace(/^www\./, '');
+  }
+
+  const currentDomain = getCurrentDomain();
+
+  // Load saved settings (site-specific first, then global)
+  chrome.storage.local.get(['enabled', 'zoom', 'siteSettings'], (result) => {
+    const siteSettings = result.siteSettings || {};
+    const siteConfig = siteSettings[currentDomain];
+
+    if (siteConfig) {
+      // Use site-specific settings
+      isEnabled = siteConfig.enabled !== undefined ? siteConfig.enabled : (result.enabled || false);
+      zoomLevel = siteConfig.zoom || result.zoom || DEFAULT_ZOOM;
+    } else {
+      // Use global settings
+      isEnabled = result.enabled || false;
+      zoomLevel = result.zoom || DEFAULT_ZOOM;
+    }
+
     if (isEnabled) {
       applyZoom();
     }
@@ -36,9 +54,75 @@
       sendResponse({ success: true });
     } else if (message.action === 'getState') {
       sendResponse({ enabled: isEnabled, zoom: zoomLevel });
+    } else if (message.action === 'getDomain') {
+      sendResponse({ domain: currentDomain });
+    } else if (message.action === 'getSiteState') {
+      sendResponse({ domain: currentDomain, enabled: isEnabled, zoom: zoomLevel });
+    } else if (message.action === 'getAspectRatio') {
+      const aspectData = detectAspectRatio();
+      sendResponse(aspectData);
     }
     return true;
   });
+
+  // Detect video aspect ratio
+  function detectAspectRatio() {
+    const video = findVideo();
+    if (!video || !video.videoWidth || !video.videoHeight) {
+      return { detected: false };
+    }
+
+    const width = video.videoWidth;
+    const height = video.videoHeight;
+    const ratio = width / height;
+
+    // Calculate suggested zoom for 21:9 ultrawide (2.33:1)
+    const ultrawideRatio = 21 / 9; // ~2.33
+    const suggestedZoom = ratio < ultrawideRatio ? ultrawideRatio / ratio : 1.0;
+
+    // Find closest common aspect ratio name
+    const ratioName = getAspectRatioName(ratio);
+
+    return {
+      detected: true,
+      width,
+      height,
+      ratio: ratio.toFixed(2),
+      ratioName,
+      suggestedZoom: Math.min(suggestedZoom, 1.5).toFixed(2)
+    };
+  }
+
+  // Get friendly name for aspect ratio
+  function getAspectRatioName(ratio) {
+    const ratios = [
+      { name: '4:3', value: 4/3 },
+      { name: '16:9', value: 16/9 },
+      { name: '1.85:1', value: 1.85 },
+      { name: '2:1', value: 2 },
+      { name: '21:9', value: 21/9 },
+      { name: '2.35:1', value: 2.35 },
+      { name: '2.39:1', value: 2.39 },
+      { name: '2.76:1', value: 2.76 }
+    ];
+
+    let closest = ratios[0];
+    let minDiff = Math.abs(ratio - ratios[0].value);
+
+    for (const r of ratios) {
+      const diff = Math.abs(ratio - r.value);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closest = r;
+      }
+    }
+
+    // Only return name if close enough (within 5%)
+    if (minDiff / closest.value < 0.05) {
+      return closest.name;
+    }
+    return `${ratio.toFixed(2)}:1`;
+  }
 
   function findVideo() {
     const allVideos = document.querySelectorAll('video');

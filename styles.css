@@ -216,6 +216,100 @@ input[type="range"]::-webkit-slider-thumb:hover {
   color: #fff;
 }
 
+/* Aspect Ratio Section */
+.aspect-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.aspect-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.aspect-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.aspect-ratio {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.apply-aspect-btn {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.apply-aspect-btn:hover {
+  background: var(--accent);
+  color: #fff;
+}
+
+/* Site Section */
+.site-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+
+.site-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.site-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.site-domain {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.save-site-btn {
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.save-site-btn:hover {
+  background: var(--accent-hover);
+}
+
+.save-site-btn.saved {
+  background: #34C759;
+}
+
 /* Hint */
 .hint {
   font-size: 11px;
