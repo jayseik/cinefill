@@ -9,8 +9,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const siteSection = document.getElementById('siteSection');
   const siteDomain = document.getElementById('siteDomain');
   const saveSiteBtn = document.getElementById('saveSiteBtn');
+  const aspectSection = document.getElementById('aspectSection');
+  const aspectRatio = document.getElementById('aspectRatio');
+  const applyAspectBtn = document.getElementById('applyAspectBtn');
 
   let currentDomain = null;
+  let suggestedZoom = null;
 
   // Dark mode initialization
   function initDarkMode() {
@@ -53,6 +57,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Load site-specific or global settings
             loadSettings();
+
+            // Detect aspect ratio
+            detectAspectRatio(tabs[0].id);
           }
         })
         .catch(() => {
@@ -63,6 +70,22 @@ document.addEventListener('DOMContentLoaded', () => {
       loadSettings();
     }
   });
+
+  // Detect video aspect ratio
+  function detectAspectRatio(tabId) {
+    chrome.tabs.sendMessage(tabId, { action: 'getAspectRatio' })
+      .then((response) => {
+        if (response?.detected) {
+          suggestedZoom = parseFloat(response.suggestedZoom);
+          aspectRatio.textContent = `${response.ratioName} (${response.width}x${response.height})`;
+          applyAspectBtn.textContent = `Apply ${suggestedZoom.toFixed(2)}x zoom`;
+          aspectSection.style.display = 'flex';
+        }
+      })
+      .catch(() => {
+        // No video detected or content script not loaded
+      });
+  }
 
   // Load saved state
   function loadSettings() {
@@ -167,5 +190,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 1500);
       });
     });
+  });
+
+  // Apply suggested aspect ratio zoom
+  applyAspectBtn.addEventListener('click', () => {
+    if (suggestedZoom === null) return;
+
+    zoomSlider.value = suggestedZoom;
+    zoomValue.textContent = suggestedZoom.toFixed(2) + 'x';
+    updatePresetButtons(suggestedZoom);
+
+    // Save state
+    chrome.storage.local.set({ zoom: suggestedZoom });
+
+    // Send message to content script
+    sendToContentScript({ action: 'setZoom', zoom: suggestedZoom });
   });
 });
