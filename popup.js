@@ -1,10 +1,40 @@
-// HBO Max Ultrawide Fixer - Popup Script
+// Cinefill - Popup Script
 document.addEventListener('DOMContentLoaded', () => {
   const enableToggle = document.getElementById('enableToggle');
   const statusLabel = document.getElementById('statusLabel');
   const zoomSlider = document.getElementById('zoomSlider');
   const zoomValue = document.getElementById('zoomValue');
   const presetBtns = document.querySelectorAll('.preset-btn');
+  const darkModeToggle = document.getElementById('darkModeToggle');
+
+  // Dark mode initialization
+  function initDarkMode() {
+    chrome.storage.local.get(['darkMode'], (result) => {
+      let isDark;
+      if (result.darkMode === undefined) {
+        // Auto-detect system preference
+        isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      } else {
+        isDark = result.darkMode;
+      }
+      applyDarkMode(isDark);
+    });
+  }
+
+  function applyDarkMode(isDark) {
+    document.body.classList.toggle('dark-mode', isDark);
+    darkModeToggle.textContent = isDark ? '☀️' : '🌙';
+    darkModeToggle.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+  }
+
+  // Dark mode toggle handler
+  darkModeToggle.addEventListener('click', () => {
+    const isDark = !document.body.classList.contains('dark-mode');
+    applyDarkMode(isDark);
+    chrome.storage.local.set({ darkMode: isDark });
+  });
+
+  initDarkMode();
 
   // Load saved state
   chrome.storage.local.get(['enabled', 'zoom'], (result) => {
