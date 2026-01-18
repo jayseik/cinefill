@@ -27,10 +27,14 @@ Your settings are saved automatically.
 
 ## Supported sites
 
-- max.com
-- hbomax.com
-- netflix.com
-- disneyplus.com
+- Max (max.com)
+- Netflix (netflix.com)
+- Disney+ (disneyplus.com)
+- Amazon Prime Video (primevideo.com)
+- Apple TV+ (tv.apple.com)
+- Hulu (hulu.com)
+- Paramount+ (paramountplus.com)
+- Peacock (peacocktv.com)
 
 ## Permissions
 
