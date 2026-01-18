@@ -1,4 +1,4 @@
-// HBO Max Ultrawide Fixer - Content Script
+// Cinefill - Content Script
 (function() {
   'use strict';
 
@@ -9,10 +9,28 @@
   let observer = null;
   let styleElement = null;
 
-  // Load saved settings
-  chrome.storage.local.get(['enabled', 'zoom'], (result) => {
-    isEnabled = result.enabled || false;
-    zoomLevel = result.zoom || DEFAULT_ZOOM;
+  // Extract domain from current URL
+  function getCurrentDomain() {
+    return window.location.hostname.replace(/^www\./, '');
+  }
+
+  const currentDomain = getCurrentDomain();
+
+  // Load saved settings (site-specific first, then global)
+  chrome.storage.local.get(['enabled', 'zoom', 'siteSettings'], (result) => {
+    const siteSettings = result.siteSettings || {};
+    const siteConfig = siteSettings[currentDomain];
+
+    if (siteConfig) {
+      // Use site-specific settings
+      isEnabled = siteConfig.enabled !== undefined ? siteConfig.enabled : (result.enabled || false);
+      zoomLevel = siteConfig.zoom || result.zoom || DEFAULT_ZOOM;
+    } else {
+      // Use global settings
+      isEnabled = result.enabled || false;
+      zoomLevel = result.zoom || DEFAULT_ZOOM;
+    }
+
     if (isEnabled) {
       applyZoom();
     }
@@ -36,6 +54,10 @@
       sendResponse({ success: true });
     } else if (message.action === 'getState') {
       sendResponse({ enabled: isEnabled, zoom: zoomLevel });
+    } else if (message.action === 'getDomain') {
+      sendResponse({ domain: currentDomain });
+    } else if (message.action === 'getSiteState') {
+      sendResponse({ domain: currentDomain, enabled: isEnabled, zoom: zoomLevel });
     }
     return true;
   });
