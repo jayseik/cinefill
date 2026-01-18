@@ -1,4 +1,4 @@
-name: Auto PR and Merge
+name: Auto PR
 
 on:
   push:
@@ -14,7 +14,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Create PR and Enable Auto-Merge
+      - name: Create PR
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -23,16 +23,9 @@ jobs:
 
           if [ -z "$existing_pr" ]; then
             # Create new PR
-            pr_url=$(gh pr create \
+            gh pr create \
               --title "${{ github.event.head_commit.message }}" \
               --body "Automated PR for branch \`${{ github.ref_name }}\`" \
               --base main \
-              --head ${{ github.ref_name }})
-
-            pr_number=$(echo $pr_url | grep -oE '[0-9]+$')
-          else
-            pr_number=$existing_pr
+              --head ${{ github.ref_name }}
           fi
-
-          # Enable auto-merge
-          gh pr merge $pr_number --auto --squash --delete-branch
