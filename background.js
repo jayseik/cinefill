@@ -1,5 +1,38 @@
 // Cinefill - Background Service Worker
 
+// Badge colors
+const BADGE_ON_COLOR = '#34C759';  // Green
+const BADGE_OFF_COLOR = '#8E8E93'; // Gray
+
+// Update badge based on state
+function updateBadge(enabled) {
+  chrome.action.setBadgeText({ text: enabled ? 'ON' : 'OFF' });
+  chrome.action.setBadgeBackgroundColor({
+    color: enabled ? BADGE_ON_COLOR : BADGE_OFF_COLOR
+  });
+}
+
+// Initialize badge on startup
+chrome.runtime.onStartup.addListener(() => {
+  chrome.storage.local.get(['enabled'], (result) => {
+    updateBadge(result.enabled || false);
+  });
+});
+
+// Initialize badge on install
+chrome.runtime.onInstalled.addListener(() => {
+  chrome.storage.local.get(['enabled'], (result) => {
+    updateBadge(result.enabled || false);
+  });
+});
+
+// Listen for storage changes to update badge
+chrome.storage.onChanged.addListener((changes, namespace) => {
+  if (namespace === 'local' && changes.enabled) {
+    updateBadge(changes.enabled.newValue);
+  }
+});
+
 // Listen for keyboard shortcut command
 chrome.commands.onCommand.addListener((command) => {
   if (command === 'toggle-cinefill') {
